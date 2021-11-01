@@ -5,19 +5,22 @@
 
 #include <iostream>
 
-void write_color( std::ostream &out, color pixel_color )
+void write_color( std::ostream &out, color pixel_color, uint8_t num_samples )
 {
-    out << '(' 
-        << static_cast<uint16_t>( 255.999 * pixel_color.x() ) << ", "
-        << static_cast<uint16_t>( 255.999 * pixel_color.y() ) << ", "
-        << static_cast<uint16_t>( 255.999 * pixel_color.z() ) << ")\n";
-}
+    float r = pixel_color.x();
+    float g = pixel_color.y();
+    float b = pixel_color.z();
 
-void write_ppm_color( std::ostream &out, color pixel_color )
-{
-    out << static_cast<uint16_t>( 255.999 * pixel_color.x() ) << ' '
-        << static_cast<uint16_t>( 255.999 * pixel_color.y() ) << ' '
-        << static_cast<uint16_t>( 255.999 * pixel_color.z() ) << '\n';
+    // Divide by num samples
+    float scale = 1.0 / num_samples;
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    // Write [0, 255] color components
+    out << static_cast<uint16_t>( 256 * clamp( r, 0.0, 0.999 ) ) << ' '
+        << static_cast<uint16_t>( 256 * clamp( g, 0.0, 0.999 ) ) << ' '
+        << static_cast<uint16_t>( 256 * clamp( b, 0.0, 0.999 ) ) << '\n';
 }
 
 #endif

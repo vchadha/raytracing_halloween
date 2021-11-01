@@ -1,3 +1,5 @@
+#include "camera.h"
+
 #include "color.h"
 #include "ray.h"
 #include "vec3.h"
@@ -74,6 +76,7 @@ int main()
     const float aspect_ratio = 16.0 / 9.0;
     const uint16_t image_width = 400;
     const uint16_t image_height = static_cast<uint16_t>( image_width / aspect_ratio );
+    const uint8_t samples_per_pixel = 100;
 
     // World
     surfaces world;
@@ -81,19 +84,7 @@ int main()
     world.add( std::make_shared<sphere>( point3( 0.0, -100.5, -1.0 ), 100 ) );
 
     // Camera
-    float viewport_height = 2.0;
-    float viewport_width = aspect_ratio * viewport_height;
-    float focal_length = 1.0;
-
-    //   ^ +y
-    //   | / -z
-    //   |/
-    //   |------> +x
-    point3 origin = point3( 0, 0, 0 );
-    vec3 horizontal = vec3( viewport_width, 0, 0 );
-    vec3 vertical = vec3( 0, viewport_height, 0 );
-    vec3 depth = vec3( 0, 0, focal_length );
-    vec3 lower_left_corner = origin - ( horizontal / 2 ) - ( vertical / 2 ) - depth;
+    camera cam;
 
     // Render
     
@@ -108,14 +99,21 @@ int main()
         float percent = float( image_height - 1 - j ) / float( image_height - 1 );
         WriteProgress( percent );
 
-        for ( u_int16_t i = 0; i < image_width; i++ )
+        for ( uint16_t i = 0; i < image_width; i++ )
         {
-            float u = float( i ) / ( image_width - 1 );
-            float v = float( j ) / ( image_height - 1 );
-            ray r( origin, lower_left_corner + ( u * horizontal ) + ( v * vertical ) - origin );
-            color pixel_color = ray_color( r, world );
+            color pixel_color( 0.0, 0.0, 0.0 );
 
-            write_ppm_color( std::cout, pixel_color );
+            // Iter through samples
+            for ( uint8_t s = 0; s < samples_per_pixel; s++ )
+            {
+                float u = ( i + random_float() ) / ( image_width - 1 );
+                float v = ( j + random_float() ) / ( image_height - 1 );
+
+                ray r = cam.get_ray( u, v );
+                pixel_color += ray_color( r, world );
+            }
+
+            write_color( std::cout, pixel_color, samples_per_pixel );
         }
     }
 
