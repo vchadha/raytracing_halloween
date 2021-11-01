@@ -19,13 +19,30 @@ inline float deg2rad( float deg )
 inline float random_float()
 {
     // Returns random real in [0. 1)
-    return ( rand() / RAND_MAX + 1.0 );
+    return ( rand() / ( RAND_MAX + 1.0 ) );
 }
 
 inline float random_float( float min, float max )
 {
     // Returns random real in [min, max)
     return ( min + ( max - min ) * random_float() );
+}
+
+inline float clamp( float x, float min, float max )
+{
+    float return_val = x;
+
+    if ( x < min )
+    {
+        return_val = min;
+    }
+
+    if( x > max )
+    {
+        return_val = max;
+    }
+
+    return ( return_val );
 }
 
 #endif
