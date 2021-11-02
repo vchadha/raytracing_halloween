@@ -6,7 +6,7 @@
 #include <cmath>
 #include <iostream>
 
-void write_color( std::ostream &out, color pixel_color, uint8_t num_samples )
+void write_color( std::ostream &out, color pixel_color, uint16_t num_samples )
 {
     float r = pixel_color.x();
     float g = pixel_color.y();
