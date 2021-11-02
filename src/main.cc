@@ -11,6 +11,7 @@
 
 #include <iostream>
 
+// TODO: make bar solid size and only print on percent change?
 void WriteProgress( float percent )
 {
     uint8_t buff_size = 45;
@@ -48,23 +49,28 @@ float hit_sphere( const point3 &center, double radius, const ray &r )
     return ( hit_point );
 }
 
-color ray_color( const ray &r, const surface &world )
+color ray_color( const ray &r, const surface &world, uint8_t depth )
 {
     hit_record record;
-    color pixel_color = color( 1.0, 1.0, 1.0 );
+    color pixel_color = color( 0.0, 0.0, 0.0 );
 
-    if ( world.hit( r, 0, pos_infinity, record ) )
+    // Have not reached ray bounce limit
+    if ( depth > 0 )
     {
-        pixel_color = 0.5 * ( record.normal + color( 1.0, 1.0, 1.0 ) );
-    }
-    else
-    {
-        vec3 unit_direction = unit_vector( r.direction() );
-        float t = 0.5 * ( unit_direction.y() + 1.0 );
-        color c1 = color( 1.0, 1.0, 1.0 );
-        color c2 = color( 0.5, 0.7, 1.0 );
+        if ( world.hit( r, 0.001, pos_infinity, record ) )
+        {
+            point3 target = record.p + record.normal + random_unit_vector();
+            pixel_color = 0.5 * ray_color( ray( record.p, target - record.p ), world, depth - 1 );
+        }
+        else
+        {
+            vec3 unit_direction = unit_vector( r.direction() );
+            float t = 0.5 * ( unit_direction.y() + 1.0 );
+            color c1 = color( 1.0, 1.0, 1.0 );
+            color c2 = color( 0.5, 0.7, 1.0 );
 
-        pixel_color = ( 1.0 - t ) * c1 + t * c2;
+            pixel_color = ( 1.0 - t ) * c1 + t * c2;
+        }
     }
 
     return ( pixel_color );
@@ -77,6 +83,9 @@ int main()
     const uint16_t image_width = 400;
     const uint16_t image_height = static_cast<uint16_t>( image_width / aspect_ratio );
     const uint8_t samples_per_pixel = 100;
+
+    // Ray params
+    const int max_depth = 50;
 
     // World
     surfaces world;
@@ -110,7 +119,7 @@ int main()
                 float v = ( j + random_float() ) / ( image_height - 1 );
 
                 ray r = cam.get_ray( u, v );
-                pixel_color += ray_color( r, world );
+                pixel_color += ray_color( r, world, max_depth );
             }
 
             write_color( std::cout, pixel_color, samples_per_pixel );
