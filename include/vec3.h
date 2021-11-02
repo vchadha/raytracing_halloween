@@ -131,5 +131,14 @@ vec3 reflect( const vec3 &v, const vec3 &n )
     return ( v - 2 * dot( v, n ) * n );
 }
 
+vec3 refract( const vec3 &uv, const vec3 &n, float eta_ratio )
+{
+    float cos_theta = fmin( dot( -uv, n ), 1.0 );
+    vec3 r_perp = eta_ratio * ( uv + cos_theta * n );
+    vec3 r_parallel = -std::sqrt( fabs( 1.0 - r_perp.length_squared() ) ) * n;
+
+    return ( r_perp + r_parallel );
+}
+
 #endif
 
