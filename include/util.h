@@ -62,7 +62,7 @@ inline vec3 random_vec3( float min, float max )
     return ( vec3( v1, v2, v3 ) );
 }
 
-inline vec3 random_vec3_in_unit_sphere()
+vec3 random_vec3_in_unit_sphere()
 {
     vec3 p = random_vec3( -1.0, 1.0 );
     bool is_valid = p.length_squared() < 1;
@@ -91,6 +91,20 @@ vec3 random_vec3_in_hemisphere( const vec3 &normal )
     }
 
     return ( in_unit_sphere );
+}
+
+vec3 random_vec3_in_unit_disc()
+{
+    vec3 p = vec3( random_float( -1.0, 1.0 ), random_float( -1.0, 1.0 ), 0.0 );
+    bool is_valid = p.length_squared() < 1;
+
+    while( !is_valid )
+    {
+        p = vec3( random_float( -1.0, 1.0 ), random_float( -1.0, 1.0 ), 0.0 ); 
+        is_valid = p.length_squared() < 1;
+    }
+
+    return ( p );
 }
 
 #endif
