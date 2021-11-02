@@ -1,6 +1,9 @@
 #include "camera.h"
 
 #include "color.h"
+#include "lambertian.h"
+#include "metal.h"
+
 #include "ray.h"
 #include "vec3.h"
 
@@ -59,8 +62,13 @@ color ray_color( const ray &r, const surface &world, uint8_t depth )
     {
         if ( world.hit( r, 0.001, pos_infinity, record ) )
         {
-            point3 target = record.p + record.normal + random_unit_vector();
-            pixel_color = 0.5 * ray_color( ray( record.p, target - record.p ), world, depth - 1 );
+            ray scattered;
+            color attenuation;
+
+            if ( record.mat_ptr->scatter( r, record, attenuation, scattered ) )
+            {
+                pixel_color = attenuation * ray_color( scattered, world, depth - 1 );
+            }
         }
         else
         {
@@ -89,8 +97,16 @@ int main()
 
     // World
     surfaces world;
-    world.add( std::make_shared<sphere>( point3( 0.0, 0.0, -1.0 ), 0.5 ) );
-    world.add( std::make_shared<sphere>( point3( 0.0, -100.5, -1.0 ), 100 ) );
+
+    auto mat_ground = std::make_shared<lambertian>( color( 0.8, 0.8, 0.0 ) );
+    auto mat_center = std::make_shared<lambertian>( color( 0.7, 0.3, 0.3 ) );
+    auto mat_left = std::make_shared<metal>( color( 0.8, 0.8, 0.8 ), 0.3 );
+    auto mat_right = std::make_shared<metal>( color( 0.8, 0.6, 0.2 ), 1.0 );
+
+    world.add( std::make_shared<sphere>( point3( 0.0, -100.5, -1.0 ), 100.0, mat_ground ) );
+    world.add( std::make_shared<sphere>( point3( 0.0, 0.0, -1.0 ), 0.5, mat_center ) );
+    world.add( std::make_shared<sphere>( point3( -1.0, 0.0, -1.0 ), 0.5, mat_left ) );
+    world.add( std::make_shared<sphere>( point3( 1.0, 0.0, -1.0 ), 0.5, mat_right ) );
 
     // Camera
     camera cam;

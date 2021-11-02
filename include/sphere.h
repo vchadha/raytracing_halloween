@@ -1,6 +1,7 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "material.h"
 #include "surface.h"
 #include "vec3.h"
 
@@ -8,7 +9,7 @@ class sphere : public surface
 {
     public:
         sphere() {}
-        sphere( point3 center, float radius ) : m_center( center ), m_radius( radius ) {};
+        sphere( point3 center, float radius, std::shared_ptr<material> mat_ptr ) : m_center( center ), m_radius( radius ), m_mat_ptr( mat_ptr ) {};
 
         virtual bool hit(
             const ray &r, float t_min, float t_max, hit_record &record ) const override;
@@ -16,6 +17,7 @@ class sphere : public surface
         private:
             point3 m_center;
             float m_radius;
+            std::shared_ptr<material> m_mat_ptr;
 };
 
 bool sphere::hit( const ray &r, float t_min, float t_max, hit_record &record ) const
@@ -49,6 +51,7 @@ bool sphere::hit( const ray &r, float t_min, float t_max, hit_record &record ) c
             record.p = r.at( root );
             vec3 outward_normal = ( record.p - m_center ) / m_radius;
             record.set_face_normal( r, outward_normal );
+            record.mat_ptr = m_mat_ptr;
 
             is_hit = true;
         }
