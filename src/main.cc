@@ -26,9 +26,16 @@ void WriteProgress( float percent )
     std::string progress_bar = "";
 
     uint8_t bar_percentage = static_cast<uint8_t>( bar_width * percent );
-    for ( uint8_t i = 0; i < bar_percentage; i++ )
+    for ( uint8_t i = 0; i < bar_width; i++ )
     {
-        progress_bar.append( "#" );
+        if ( i <= bar_percentage )
+        {
+            progress_bar.append( "#" );
+        }
+        else
+        {
+            progress_bar.append( " " );
+        }
     }
 
     uint8_t rounded_percent = static_cast<int>( percent * 100 );
@@ -86,7 +93,8 @@ color ray_color( const ray &r, const surface &world, uint8_t depth )
     return ( pixel_color );
 }
 
-surfaces random_scene() {
+surfaces random_scene()
+{
     surfaces world;
 
     auto ground_material = std::make_shared<lambertian>( color( 0.5, 0.5, 0.5 ) );
@@ -139,7 +147,7 @@ int main()
     const uint16_t image_width = 400;
     const uint16_t image_height = static_cast<uint16_t>( image_width / aspect_ratio );
     const uint16_t samples_per_pixel = 50;
-    const int max_depth = 50;
+    const uint16_t max_depth = 50;
 
     // World
     surfaces world;

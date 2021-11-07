@@ -9,6 +9,9 @@
 #include <limits>
 #include <memory>
 
+// Macros
+#define UNUSED(x) (void)(x)
+
 //Constants
 const float pos_infinity = std::numeric_limits<float>::infinity();
 const float PI = 3.1415926535897932385;

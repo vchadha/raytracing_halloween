@@ -15,6 +15,7 @@ class lambertian : public material
             const ray &r_in, const hit_record &record, color &attenuation, ray &scattered
         ) const override
         {
+            UNUSED( r_in );
             vec3 scatter_direction = record.normal + random_unit_vector();
 
             // Catch degenerate scatter direction

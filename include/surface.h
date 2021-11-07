@@ -2,6 +2,7 @@
 #define SURFACE_H
 
 #include "ray.h"
+#include "material.h"
 
 class material;
 
