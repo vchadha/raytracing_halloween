@@ -114,6 +114,7 @@ test_memory: $(TARGET)
 clean:
 	$(ECHO) "Cleaning...";
 	$(ECHO) "[CL] $(TARGET)"
+	$(QUIET) -rm $(TARGET)
 	$(ECHO) "[CL] $(BDIR)/*"
 	$(QUIET) find $(BDIR) -name "*.o" -type f -delete
 	$(QUIET) find $(BDIR) -name "*.d" -type f -delete
@@ -121,6 +122,7 @@ clean:
 clean_test:
 	$(ECHO) "Cleaning tests...";
 	$(ECHO) "[CL] $(TESTER)"
+	$(QUIET) -rm $(TESTER)
 	$(ECHO) "[CL] $(BDIR)/*"
 	$(QUIET) find $(BDIR) -name "*.o" -type f -delete
 	$(QUIET) find $(BDIR) -name "*.d" -type f -delete
@@ -128,7 +130,9 @@ clean_test:
 clean_all:
 	$(ECHO) "Cleaning all...";
 	$(ECHO) "[CL] $(TARGET)"
-	$(ECHO) "[CL] $(TESTER)"	
+	$(QUIET) -rm $(TARGET)
+	$(ECHO) "[CL] $(TESTER)"
+	$(QUIET) -rm $(TESTER)
 	$(ECHO) "[CL] $(BDIR)/*"
 	$(QUIET) find $(BDIR) -name "*.o" -type f -delete
 	$(QUIET) find $(BDIR) -name "*.d" -type f -delete
@@ -136,12 +140,12 @@ clean_all:
 # --------------------------------------------------------------
 
 .PHONY: tar archive zip
-tar: clean clean_test
+tar: clean_all
 	$(ECHO) "Tarring...";
 	$(ECHO) "[OK]  bin/$(ARCHIVE_NAME).tar.gz"
 	$(QUIET) tar -czf bin/$(ARCHIVE_NAME).tar.gz . --exclude='bin' --exclude='build'
 
-archive zip: clean clean_test
+archive zip: clean_all
 	$(ECHO) "Zipping...";
 	$(ECHO) "[OK]  bin/$(EXEC)-$(shell date '+%F').zip"
 	$(QUIET) zip -q -r bin/$(ARCHIVE_NAME).zip . -x bin/* build/*
