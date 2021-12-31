@@ -1,22 +1,19 @@
 #include "camera.h"
-
-#include "color.h"
-#include "lambertian.h"
-#include "metal.h"
-#include "dielectric.h"
-
 #include "ray.h"
-#include "vec3.h"
-
-#include "sphere.h"
 #include "surfaces.h"
 
-#include "util.h"
+#include "objects/sphere.h"
+
+#include "materials/lambertian.h"
+#include "materials/metal.h"
+#include "materials/dielectric.h"
+
+#include "utilities/util.h"
+#include "utilities/vector3f.h"
 
 #include <iostream>
 #include <cmath>
 
-// TODO: make bar solid size and only print on percent change?
 void WriteProgress( float percent )
 {
     uint8_t buff_size = 45;
@@ -47,9 +44,9 @@ float hit_sphere( const point3 &center, double radius, const ray &r )
 {
     float hit_point = -1.0;
 
-    vec3 oc = r.origin() - center;
+    vector3f oc = r.origin() - center;
     float a = r.direction().length_squared();
-    float half_b = dot( oc, r.direction() );
+    float half_b = oc.dot( r.direction() );
     float c = oc.length_squared() - radius * radius;
     float discriminant = half_b * half_b - a * c;
     
@@ -69,7 +66,7 @@ color ray_color( const ray &r, const surface &world, uint8_t depth )
     // Have not reached ray bounce limit
     if ( depth > 0 )
     {
-        if ( world.hit( r, 0.001, pos_infinity, record ) )
+        if ( world.hit( r, 0.001, util::pos_infinity, record ) )
         {
             ray scattered;
             color attenuation;
@@ -81,7 +78,7 @@ color ray_color( const ray &r, const surface &world, uint8_t depth )
         }
         else
         {
-            vec3 unit_direction = unit_vector( r.direction() );
+            vector3f unit_direction = r.direction().unit_vector();
             float t = 0.5 * ( unit_direction.y() + 1.0 );
             color c1 = color( 1.0, 1.0, 1.0 );
             color c2 = color( 0.5, 0.7, 1.0 );
@@ -102,21 +99,21 @@ surfaces random_scene()
 
     for ( int a = -11; a < 11; a++ ) {
         for ( int b = -11; b < 11; b++ ) {
-            auto choose_mat = random_float();
-            point3 center( a + 0.9 * random_float(), 0.2, b + 0.9 * random_float() );
+            auto choose_mat = util::random_float();
+            point3 center( a + 0.9 * util::random_float(), 0.2, b + 0.9 * util::random_float() );
 
             if ( ( center - point3( 4, 0.2, 0 ) ).length() > 0.9 ) {
                 std::shared_ptr<material> sphere_material;
 
                 if ( choose_mat < 0.8 ) {
                     // diffuse
-                    auto albedo = random_vec3() * random_vec3();
+                    auto albedo = util::random_vector3f() * util::random_vector3f();
                     sphere_material = std::make_shared<lambertian>( albedo );
                     world.add( std::make_shared<sphere>( center, 0.2, sphere_material ) );
                 } else if ( choose_mat < 0.95 ) {
                     // metal
-                    auto albedo = random_vec3( 0.5, 1 );
-                    auto fuzz = random_float( 0, 0.5 );
+                    auto albedo = util::random_vector3f( 0.5, 1 );
+                    auto fuzz = util::random_float( 0, 0.5 );
                     sphere_material = std::make_shared<metal>( albedo, fuzz );
                     world.add( std::make_shared<sphere>( center, 0.2, sphere_material ) );
                 } else {
@@ -146,19 +143,17 @@ int main()
     const float aspect_ratio = 3.0 / 2.0;
     const uint16_t image_width = 400;
     const uint16_t image_height = static_cast<uint16_t>( image_width / aspect_ratio );
-    const uint16_t samples_per_pixel = 50;
+    const uint16_t samples_per_pixel = 10;
     const uint16_t max_depth = 50;
 
     // World
     surfaces world;
-
-    // TODO: something is wrong with my colors...
     world = random_scene();
 
     // Camera
     point3 lookfrom( 13, 2, 3 );
     point3 lookat( 0.0, 0.0, 0.0 );
-    vec3 vup( 0.0 , 1.0 , 0.0 );
+    vector3f vup( 0.0 , 1.0 , 0.0 );
     float dist_to_focus = 10.0;
     float aperture = 0.1;
 
@@ -174,8 +169,11 @@ int main()
     for ( int16_t j = image_height - 1; j >= 0; j-- )
     {
         // Write progress
-        float percent = float( image_height - 1 - j ) / float( image_height - 1 );
-        WriteProgress( percent );
+        if ( j % 5 == 0 )
+        {
+            float percent = float( image_height - 1 - j ) / float( image_height - 1 );
+            WriteProgress( percent );
+        }
 
         for ( uint16_t i = 0; i < image_width; i++ )
         {
@@ -184,14 +182,14 @@ int main()
             // Iter through samples
             for ( uint8_t s = 0; s < samples_per_pixel; s++ )
             {
-                float u = ( i + random_float() ) / ( image_width - 1 );
-                float v = ( j + random_float() ) / ( image_height - 1 );
+                float u = ( i + util::random_float() ) / ( image_width - 1 );
+                float v = ( j + util::random_float() ) / ( image_height - 1 );
 
                 ray r = cam.get_ray( u, v );
                 pixel_color += ray_color( r, world, max_depth );
             }
 
-            write_color( std::cout, pixel_color, samples_per_pixel );
+            util::write_color( std::cout, pixel_color, samples_per_pixel );
         }
     }
 
